@@ -1,0 +1,55 @@
+:root {
+  --font-press-start: 'Press Start 2P', cursive;
+  --font-vt323: 'VT323', monospace;
+  
+  /* Base & Environment */
+  --color-game-bg: #1A1A1A;
+  --color-game-bg-transparent: rgba(26, 26, 26, 0.8);
+  --color-grid-line: rgba(255, 255, 255, 0.1);
+  --color-sky-base: #3E94FC;
+  --color-sky-light: #6EB7FF;
+  
+  --color-grass-bg: #5C9E33;
+  --color-grass-blade: #76C442;
+  --color-soil-bg: #2E1A11;
+  --color-soil-dot: #3F2418;
+  
+  /* Wood UI */
+  --color-wood-bg: #8B6542;
+  --color-wood-line: rgba(63, 36, 24, 0.1);
+  --color-wood-border: #2E1A11;
+  --color-wood-highlight: #A67C52;
+  --color-wood-shadow: #5D4037;
+  
+  /* Input Fields */
+  --color-input-bg: #3F2418;
+  --color-input-border: #2E1A11;
+  --color-input-text: #FFFFFF;
+  --color-input-placeholder: #8D6E63;
+  --color-input-focus: #FFEB3B;
+  
+  /* Buttons (Green) */
+  --color-btn-green-bg: #4CAF50;
+  --color-btn-green-text: #1A1A1A;
+  --color-btn-green-light: #81C784;
+  --color-btn-green-dark: #388E3C;
+  
+  /* Text */
+  --color-text-primary: #1A1A1A;
+  --color-text-light: #FFFFFF;
+  --color-text-score: #FFEB3B;
+  --color-text-error: #D32F2F;
+
+  /* Gameplay Elements (Bomb, Star, Health) */
+  --color-bomb-body: #333333;
+  --color-bomb-fuse: #D32F2F;
+  --color-star-body: #FFD700;
+  --color-star-outline: #FF8C00;
+  --color-health-heart: #D32F2F;
+  --color-health-empty: #5D4037;
+
+  /* Decorative Tree */
+  --color-tree-leaf: #1E6F34;
+  --color-tree-trunk: #4E342E;
+  --color-tree-berry: #D32F2F;
+}
