@@ -36,7 +36,7 @@ let animationFrameId = null;
 let frameCount = 0;
 let countdownInterval = null;
 
-// --- Local Game State ---
+// Local Game State
 const localState = reactive({
   status: 'PLAYING',
   snake: [],
@@ -67,7 +67,6 @@ const CANVAS_HEIGHT = 1000;
 const GRID_W = CANVAS_WIDTH / CELL_SIZE;
 const GRID_H = CANVAS_HEIGHT / CELL_SIZE;
 
-// ==================== 工具函式 ====================
 const getPlayerColor = (playerId, isMe) => {
   if (isMe) {
     return {
@@ -90,12 +89,10 @@ const getPlayerColor = (playerId, isMe) => {
   };
 };
 
-// ==================== 倒數計時邏輯 ====================
 const startCountdown = () => {
   countdown.value = 20;
   gameMode.value = 'CONNECTING';
   
-  // ✅ 修正1: 倒數期間繼續玩單機遊戲
   localState.status = 'PLAYING';
   
   countdownInterval = setInterval(() => {
@@ -117,7 +114,7 @@ const connectEarly = () => {
   connect();
 };
 
-// ==================== Palette 解析 ====================
+// Palette 解析
 const resolvePalette = (tokens, target) => {
   const styles = getComputedStyle(document.documentElement);
 
@@ -133,7 +130,7 @@ const resolvePalette = (tokens, target) => {
   target.bg = `rgba(26, 26, 26, 0.8)`;
 };
 
-// ==================== 單機遊戲邏輯 ====================
+// 單機遊戲邏輯
 const getRandomPos = () => ({
   x: Math.floor(Math.random() * GRID_W),
   y: Math.floor(Math.random() * GRID_H)
@@ -154,6 +151,11 @@ const spawnItem = (type) => {
   while (isOccupied(pos) && attempts < 100) {
     pos = getRandomPos();
     attempts++;
+  }
+  
+  if (attempts >= 100) {
+    console.warn("無法找到空位生成物品:", type);
+    return;
   }
 
   if (type === 'food') localState.food = pos;
@@ -301,32 +303,24 @@ const connect = () => {
   socket.value.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      console.log("📩 Received message:", data.t, data);
+      // console.log("📩 Received message:", data.t, data);
       
       if (data.t === "join_ok") {
         console.log("✅ 成功加入房間:", data.room_id);
         
         gameMode.value = 'ONLINE';
-        
         localState.status = 'IDLE';
-        localState.snake = [];
-        localState.direction = 'UP';
-        localState.nextDirection = 'UP';
-        localState.health = 6;
         
         onlineGameState.myId = data.your_id;
         onlineGameState.roomId = data.room_id;
         onlineGameState.status = data.status;
-        
-        console.log("我的玩家ID:", onlineGameState.myId);
-        console.log("後端遊戲狀態:", onlineGameState.status);
-        console.log("切換到 ONLINE 模式，前端邏輯已停止");
         
         if (data.map) {
           onlineGameState.mapSize = data.map;
         }
         
         // 處理玩家列表
+        onlineGameState.players = {};
         if (data.players) {
           data.players.forEach(p => {
             onlineGameState.players[p.id] = {
@@ -337,158 +331,100 @@ const connect = () => {
           });
         }
         
-        // ✅ 處理 snapshot (遊戲已經在進行中)
+        // 處理快照
         if (data.snapshot) {
-          console.log("📸 載入遊戲快照:", data.snapshot);
+          if (data.snapshot.food) onlineGameState.food = data.snapshot.food;
           
-          if (data.snapshot.food) {
-            onlineGameState.food = data.snapshot.food;
-            console.log("🍎 快照食物:", data.snapshot.food);
-          }
-          
-          if (data.snapshot.snakes) {
-            console.log("🐍 快照蛇資料:", Object.keys(data.snapshot.snakes).length, "條蛇");
-            Object.entries(data.snapshot.snakes).forEach(([playerId, snakeData]) => {
-              const isMe = playerId === onlineGameState.myId;
-              
-              onlineGameState.snakes[playerId] = {
-                body: snakeData.body,
-                color: getPlayerColor(playerId, isMe),
-                alive: snakeData.alive,
-                name: snakeData.name,
-                score: snakeData.score
-              };
-              
-              if (onlineGameState.players[playerId]) {
-                onlineGameState.players[playerId].score = snakeData.score;
-                onlineGameState.players[playerId].alive = snakeData.alive;
-              }
-              
-              // ✅ 如果我在快照中已經死亡，初始化分數
-              if (isMe) {
-                gameInfo.onlineScore = snakeData.score;
-              }
-            });
-          }
-        }
-      }
-      // ✅ 處理 game_start 訊息
-      else if (data.t === "game_start") {
-        console.log("🎮 遊戲開始!", data);
-        gameMode.value = 'ONLINE';
-        onlineGameState.status = 'RUNNING';
-        
-        if (data.food) {
-          onlineGameState.food = data.food;
-          console.log("🍎 食物位置:", data.food);
-        }
-        
-        if (data.players) {
-          console.log("👥 玩家列表:", data.players);
-          data.players.forEach(p => {
-            const isMe = p.id === onlineGameState.myId;
-            onlineGameState.snakes[p.id] = {
-              body: p.body,
-              color: getPlayerColor(p.id, isMe),
-              alive: true,
-              name: p.name,
-              score: 0
+          Object.entries(data.snapshot.snakes).forEach(([playerId, snakeData]) => {
+            const isMe = playerId === onlineGameState.myId;
+            onlineGameState.snakes[playerId] = {
+              body: snakeData.body,
+              color: getPlayerColor(playerId, isMe),
+              alive: snakeData.alive,
+              name: snakeData.name,
+              score: snakeData.score
             };
-            
-            onlineGameState.players[p.id] = {
-              name: p.name,
-              score: 0,
-              alive: true
-            };
+            if (onlineGameState.players[playerId]) {
+              onlineGameState.players[playerId].score = snakeData.score;
+              onlineGameState.players[playerId].alive = snakeData.alive;
+            }
+            if (isMe) gameInfo.onlineScore = snakeData.score;
           });
-          
-          // 初始化自己的分數
-          gameInfo.onlineScore = 0;
         }
       }
-      // ✅ 處理 delta 更新
+      else if (data.t === "game_start") {
+        onlineGameState.status = 'RUNNING';
+        onlineGameState.food = data.food;
+        onlineGameState.snakes = {};
+        data.players.forEach(p => {
+          const isMe = p.id === onlineGameState.myId;
+          onlineGameState.snakes[p.id] = {
+            body: p.body,
+            color: getPlayerColor(p.id, isMe),
+            alive: true,
+            name: p.name,
+            score: 0
+          };
+          onlineGameState.players[p.id] = { name: p.name, score: 0, alive: true };
+        });
+        gameInfo.onlineScore = 0;
+      }
       else if (data.t === "d") {
-        // ✅ 修正5: 只有在 ONLINE 模式才處理 delta
-        if (gameMode.value !== 'ONLINE') {
-          console.warn("⚠️ 非 ONLINE 模式收到 delta，忽略");
-          return;
-        }
+        if (gameMode.value !== 'ONLINE') return;
+        if (data.food) onlineGameState.food = data.food;
         
-        // 更新食物
-        if (data.food) {
-          onlineGameState.food = data.food;
-        }
-        
-        // 更新蛇的移動
         if (data.moves) {
           data.moves.forEach(move => {
-            const playerId = move.id;
-            const isMe = playerId === onlineGameState.myId;
+            const pid = move.id;
+            const isMe = pid === onlineGameState.myId;
             
-            // 玩家死亡
             if (move.dead) {
-              if (isMe) {
-                console.error("💀 我死了!進入觀戰模式");
+              if (onlineGameState.snakes[pid]) {
+                onlineGameState.snakes[pid].alive = false;
+                onlineGameState.snakes[pid].body = [];
               }
-              if (onlineGameState.snakes[playerId]) {
-                onlineGameState.snakes[playerId].alive = false;
-                onlineGameState.snakes[playerId].body = [];
-              }
-              if (onlineGameState.players[playerId]) {
-                onlineGameState.players[playerId].alive = false;
-              }
+              if (onlineGameState.players[pid]) onlineGameState.players[pid].alive = false;
               return;
             }
             
-            // 更新蛇的位置
-            if (onlineGameState.snakes[playerId]) {
-              const snake = onlineGameState.snakes[playerId];
-              
-              if (move.head_add) {
-                snake.body.unshift(move.head_add);
-              }
-              
-              if (move.tail_remove && snake.body.length > 0) {
-                snake.body.pop();
-              }
-              
-              if (move.score !== undefined) {
-                snake.score = move.score;
-                if (onlineGameState.players[playerId]) {
-                  onlineGameState.players[playerId].score = move.score;
-                }
-                
-                if (playerId === onlineGameState.myId) {
-                  gameInfo.onlineScore = move.score;
-                }
-              }
+            // Handle revival
+            if (move.revived || !onlineGameState.snakes[pid]) {
+               onlineGameState.snakes[pid] = {
+                 body: move.head_add ? [move.head_add] : [],
+                 color: getPlayerColor(pid, isMe),
+                 alive: true,
+                 name: onlineGameState.players[pid]?.name || 'AI',
+                 score: move.score || 0
+               };
+            }
+
+            const snake = onlineGameState.snakes[pid];
+            if (move.head_add) snake.body.unshift(move.head_add);
+            if (move.tail_remove) snake.body.pop();
+            
+            if (move.score !== undefined) {
+              snake.score = move.score;
+              if (onlineGameState.players[pid]) onlineGameState.players[pid].score = move.score;
+              if (isMe) gameInfo.onlineScore = move.score;
             }
           });
         }
       }
       else if (data.t === "game_over") {
-        console.log("遊戲結束! 完整資料:", data);
         gameMode.value = 'FINISHED';
         onlineGameState.status = 'FINISHED';
         showModeMenu.value = true;
       }
-      else if (data.t === "err") {
-        console.error("❌ 伺服器錯誤:", data.code);
-      }
-      
-    } catch (e) { 
-      console.error("❌ Error parsing message:", e); 
-    }
+    } catch (e) { console.error("❌ Error parsing message:", e); }
   };
 
   socket.value.onclose = (e) => {
-    console.log("🔌 WebSocket Disconnected:", e.code, e.reason);
+    console.log("WebSocket Disconnected:", e.code, e.reason);
     if (gameMode.value === 'ONLINE' || gameMode.value === 'CONNECTING') {
-      // ✅ 修正5: 斷線時顯示結束畫面，而非切回單機
       gameMode.value = 'FINISHED';
       onlineGameState.status = 'FINISHED';
       showModeMenu.value = true;
-      console.log("⚠️ 連線中斷，顯示遊戲結束畫面");
+      console.log("連線中斷，顯示遊戲結束畫面");
     }
   };
 
@@ -505,10 +441,9 @@ const disconnect = () => {
   gameMode.value = 'LOCAL';
   onlineGameState.snakes = {};
   onlineGameState.food = [];
-  console.log("🔌 手動斷線,切換回單機模式");
+  console.log("手動斷線,切換回單機模式");
 };
 
-// ==================== 模式選單處理 ====================
 const chooseContinueOnline = () => {
   showModeMenu.value = false;
   
@@ -529,7 +464,6 @@ const choosePlayLocal = () => {
   gameMode.value = 'LOCAL';
 };
 
-// ==================== 渲染邏輯 ====================
 const render = () => {
   const canvas = canvasRef.value;
   if (!canvas) return;
@@ -555,11 +489,9 @@ const render = () => {
   }
   ctx.stroke();
 
-  // ==================== 單機模式渲染 ====================
+  // 單機模式渲染
   if (isLocal) {
-    // ✅ CONNECTING 模式下也渲染遊戲物件（倒數期間可以玩）
     if (gameMode.value === 'LOCAL' || gameMode.value === 'CONNECTING') {
-      // Bombs
       localState.bombs.forEach(b => {
         const x = b.x * CELL_SIZE;
         const y = b.y * CELL_SIZE;
@@ -571,7 +503,6 @@ const render = () => {
         ctx.fillRect(x + 9, y + 2, 2, 4);
       });
 
-      // Stars
       localState.stars.forEach(s => {
         const x = s.x * CELL_SIZE;
         const y = s.y * CELL_SIZE;
@@ -594,7 +525,6 @@ const render = () => {
         ctx.stroke();
       });
 
-      // Food (單機)
       const fx = localState.food.x * CELL_SIZE;
       const fy = localState.food.y * CELL_SIZE;
       ctx.fillStyle = palette.food.body;
@@ -605,7 +535,6 @@ const render = () => {
       ctx.fillStyle = palette.food.leaf;
       ctx.fillRect(fx + CELL_SIZE - 6, fy - 4, 8, 8);
 
-      // Snake (單機)
       localState.snake.forEach((pos, index) => {
         const x = pos.x * CELL_SIZE;
         const y = pos.y * CELL_SIZE;
@@ -635,9 +564,8 @@ const render = () => {
       });
     }
   }
-  // ==================== 多人模式渲染 ====================
+  // 多人模式渲染
   else {
-    // ✅ 繪製多個食物
     onlineGameState.food.forEach(foodPos => {
       const [fx, fy] = foodPos;
       const px = fx * CELL_SIZE;
@@ -652,7 +580,6 @@ const render = () => {
       ctx.fillRect(px + CELL_SIZE - 6, py - 4, 8, 8);
     });
 
-    // ✅ 繪製多條蛇
     Object.entries(onlineGameState.snakes).forEach(([playerId, snakeData]) => {
       if (!snakeData.alive || !snakeData.body || snakeData.body.length === 0) return;
       
@@ -688,22 +615,22 @@ const render = () => {
           }
         }
       });
-      
-      // 繪製玩家名稱標籤
+
       if (snakeData.body.length > 0) {
         const [hx, hy] = snakeData.body[0];
         const px = hx * CELL_SIZE;
         const py = hy * CELL_SIZE;
         
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.font = '12px "VT323"';
+        ctx.font = '16px "VT323"';
         ctx.textAlign = 'center';
         const name = snakeData.name || 'Unknown';
-        const textWidth = ctx.measureText(name).width;
-        ctx.fillRect(px - textWidth/2 - 4, py - 24, textWidth + 8, 16);
+        const scoreStr = `${name}: ${snakeData.score || 0}`;
+        const textWidth = ctx.measureText(scoreStr).width;
+        ctx.fillRect(px - textWidth/2 - 4, py - 30, textWidth + 8, 20);
         
         ctx.fillStyle = isMe ? '#4ade80' : 'white';
-        ctx.fillText(name, px, py - 12);
+        ctx.fillText(scoreStr, px, py - 14);
       }
     });
   }
@@ -741,7 +668,7 @@ const render = () => {
     ctx.font = '20px "VT323"';
     ctx.textAlign = 'center';
     const playerCount = Object.keys(onlineGameState.players).length;
-    ctx.fillText(`🌐 ONLINE - ${playerCount} Players`, canvas.width / 2, 30);
+    ctx.fillText(`ONLINE - ${playerCount} Players`, canvas.width / 2, 30);
   }
 };
 
@@ -762,7 +689,6 @@ const renderLoop = () => {
   animationFrameId = requestAnimationFrame(renderLoop);
 };
 
-// ==================== 鍵盤輸入處理 ====================
 const handleKeydown = (e) => {
   if (e.key === ' ' && gameMode.value === 'CONNECTING') {
     e.preventDefault();
@@ -806,7 +732,7 @@ const currentScore = computed(() => {
 
 onMounted(() => {
   console.log("=== GameBoard 初始化 ===");
-  console.log("📦 userData:", props.userData);
+  console.log("userData:", props.userData);
   console.log("  - name:", props.userData.name);
   console.log("  - roomId:", props.userData.roomId);
   console.log("  - mode:", props.userData.mode || "未設定");
@@ -841,9 +767,9 @@ onUnmounted(() => {
       </div>
       <div class="c-scoreboard-item">
         ROOM: {{ userData.roomId }}
-        <span v-if="gameMode === 'LOCAL'" class="ml-2 text-green-400">🎮 LOCAL</span>
+        <span v-if="gameMode === 'LOCAL'" class="ml-2 text-green-400">LOCAL</span>
         <span v-if="gameMode === 'ONLINE'" class="ml-2 text-blue-400">
-          🌐 ONLINE ({{ Object.keys(onlineGameState.players).length }}人)
+          ONLINE ({{ Object.keys(onlineGameState.players).length }}人)
         </span>
         <span v-if="gameMode === 'CONNECTING'" class="ml-2 text-yellow-400">⏰ {{ countdown }}s</span>
       </div>
@@ -864,15 +790,15 @@ onUnmounted(() => {
       <!-- 後端遊戲結束選單 -->
       <div v-if="showModeMenu"
         class="absolute inset-0 bg-black/90 flex flex-col items-center justify-center text-white z-50">
-        <h2 class="text-5xl c-text-title mb-6">🏁 GAME FINISHED</h2>
+        <h2 class="text-5xl c-text-title mb-6">GAME FINISHED</h2>
         <div class="text-xl mb-8 font-vt323">Choose your next mode:</div>
         
         <div class="flex flex-col gap-4">
           <button @click="chooseContinueOnline" class="c-btn-game">
-            🌐 CONTINUE ONLINE
+            CONTINUE ONLINE
           </button>
           <button @click="choosePlayLocal" class="c-btn-game">
-            🎮 PLAY LOCAL
+            PLAY LOCAL
           </button>
         </div>
       </div>
