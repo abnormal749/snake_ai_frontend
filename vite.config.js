@@ -11,6 +11,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 // const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  base: '/',
   plugins: [
     vue(),
     // vueDevTools(),

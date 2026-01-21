@@ -2,7 +2,9 @@ import { ref, reactive } from 'vue';
 
 export function useOnlineGame() {
   const socket = ref(null);
-  const SERVER_URL = 'ws://localhost:8765/ws';
+  const SERVER_URL = import.meta.env.VITE_WS_URL;
+
+  socket.value = new WebSocket(SERVER_URL);
   
   const onlineGameState = reactive({
     myId: null,
