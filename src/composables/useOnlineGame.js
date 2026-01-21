@@ -3,8 +3,6 @@ import { ref, reactive } from 'vue';
 export function useOnlineGame() {
   const socket = ref(null);
   const SERVER_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
-
-  socket.value = new WebSocket(SERVER_URL);
   
   const onlineGameState = reactive({
     myId: null,
