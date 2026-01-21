@@ -26,7 +26,6 @@ export function useGameController(localGame, onlineGame, props) {
     connectOnline(props.userData, {
       getGameMode: () => gameMode.value,
       onJoinOk: () => {
-        console.log("✅ Joined Room");
         gameMode.value = 'ONLINE';
         localState.status = 'IDLE';
       },
@@ -64,7 +63,6 @@ export function useGameController(localGame, onlineGame, props) {
     if (countdownInterval) clearInterval(countdownInterval);
     countdownInterval = setInterval(() => {
       countdown.value--;
-      console.log(`倒數: ${countdown.value} 秒`);
       
       if (countdown.value <= 0) {
         clearInterval(countdownInterval);

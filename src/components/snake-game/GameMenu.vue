@@ -13,7 +13,7 @@ const emit = defineEmits(['start']);
 const form = reactive({
   name: 'HERO',
   roomId: 1,
-  mode: 1 // 1=DQN, 2=NEAT, 3=bsf
+  mode: 1 
 });
 
 const handleStart = () => {
@@ -34,8 +34,6 @@ const handleStart = () => {
         class="c-input-game"
         maxlength="10"
     >
-    
-    <!-- Room & Mode Selectors -->
     <div class="grid grid-cols-2 gap-2 mt-2">
        <div>
          <label class="text-sm text-text-primary font-bold">ROOM</label>

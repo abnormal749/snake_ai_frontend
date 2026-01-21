@@ -49,7 +49,6 @@ export function useLocalGame() {
     }
     
     if (attempts >= 100) {
-      console.warn("無法找到空位生成物品:", type);
       return;
     }
 
@@ -99,7 +98,6 @@ export function useLocalGame() {
       localState.health -= 1;
       if (localState.health <= 0) {
         if (gameModeValue === 'CONNECTING' || gameModeValue === 'ONLINE') {
-          console.log("單機模式死亡，自動重置 (倒數繼續)");
           localState.health = 6;
           localState.bombs = [];
           localState.stars = [];
@@ -121,7 +119,6 @@ export function useLocalGame() {
       localState.bombs.splice(bombIndex, 1);
       if (localState.health <= 0) {
         if (gameModeValue === 'CONNECTING' || gameModeValue === 'ONLINE') {
-          console.log("炸彈爆炸死亡，自動重置 (倒數繼續)");
           localState.health = 6;
           localState.bombs = [];
           localState.stars = [];

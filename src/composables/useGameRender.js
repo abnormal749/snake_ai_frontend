@@ -150,7 +150,6 @@ export function useGameRender() {
         }
       });
 
-      // Name & Score Tag
       if (snakeData.body.length > 0) {
         const [hx, hy] = snakeData.body[0];
         const px = hx * CELL_SIZE;
@@ -174,7 +173,6 @@ export function useGameRender() {
     if (!canvas || !palette.snake) return;
     const ctx = canvas.getContext('2d');
 
-    // Clear & Background
     ctx.fillStyle = palette.bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
