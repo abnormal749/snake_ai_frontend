@@ -86,6 +86,7 @@ export function useGameController(localGame, onlineGame, props) {
   };
 
   const chooseContinueOnline = (onlineGameState, onlineScore) => {
+    disconnectOnline();
     showModeMenu.value = false;
     for (const key in onlineGameState.snakes) delete onlineGameState.snakes[key];
     onlineGameState.food.length = 0;
