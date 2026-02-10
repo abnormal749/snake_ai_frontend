@@ -1,0 +1,13 @@
+這是一個貪吃蛇專案，有兩個資料夾分別是：ccclub-2025-snake（後端）、snake_ai_frontend（前端）
+後端：
+ * snake_ai 負責AI訓練(但是以訓練完成，所以不要改他)
+ * snake_server 後端主程式
+ * snake_gui 客戶端圖形界面
+ * snake_cli 會被gui調用
+ * snake_agent 會被server調用，同樣不需要改動
+ * snake_env , snake_protocol , stress_test都不用理他
+
+前端：
+ * 這是用node.js寫的，負責顯示網頁操作。
+
+snake_gui與網頁前端有部分不匹配，但是由於是小專題，我們只先重視邏輯正確就好。

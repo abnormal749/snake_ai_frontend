@@ -11,9 +11,19 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'dist')));
 
+const args = process.argv.slice(2);
+const useLocal = args.includes('--local');
+const targetUrl = useLocal ? 'ws://127.0.0.1:8765' : 'ws://20.239.90.85:8765';
+
+if (useLocal) {
+  console.log('Using local backend:', targetUrl);
+} else {
+  console.log('Using remote backend:', targetUrl);
+}
+
 // WebSocket 代理到 Azure 後端
 app.use('/ws', createProxyMiddleware({
-  target: 'ws://20.239.90.85:8765',
+  target: targetUrl,
   ws: true,
   changeOrigin: true,
   pathRewrite: { '^/ws': '' },

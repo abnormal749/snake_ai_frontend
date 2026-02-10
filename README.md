@@ -32,7 +32,19 @@ npm run start
 
 伺服器啟動後，請在瀏覽器開啟：[http://localhost:3000](http://localhost:3000)
 
-### 2. 開發模式 (僅前端)
+### 2. 連接本機後端 (開發用)
+
+若您在本地執行了 Python 後端 (`127.0.0.1:8765`)，請加上 `--local` 參數啟動代理伺服器：
+
+```bash
+# 建置專案
+npm run build
+
+# 連接本機後端
+node server.js --local
+```
+
+### 3. 開發模式 (僅前端)
 
 此模式啟動 Vite 開發伺服器，支援熱重載 (HMR)。
 
