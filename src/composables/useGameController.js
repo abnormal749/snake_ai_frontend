@@ -54,6 +54,9 @@ export function useGameController(localGame, onlineGame, props) {
         
         showToast(`💀 ${name} ${reasonText}`);
       },
+      onAIDemoStart: () => {
+        showToast('玩家都出局了，接下來是 AI 雙機對戰展示', 'warning');
+      },
       onGameOver: (gameOverData) => {
         const ranks = Array.isArray(gameOverData?.ranks) ? [...gameOverData.ranks] : [];
         ranks.sort((a, b) => {

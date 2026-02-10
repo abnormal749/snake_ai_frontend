@@ -3,6 +3,7 @@ import { ref, reactive } from 'vue';
 export function useOnlineGame() {
   const socket = ref(null);
   const SERVER_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
+  const isBotPlayerId = (pid) => typeof pid === 'string' && pid.startsWith('bot_');
 
   const onlineGameState = reactive({
     myId: null,
@@ -42,6 +43,7 @@ export function useOnlineGame() {
   };
 
   const connect = (userData, callbacks) => {
+    let aiDemoAnnounced = false;
     socket.value = new WebSocket(SERVER_URL);
 
     socket.value.onopen = () => {
@@ -115,6 +117,7 @@ export function useOnlineGame() {
           if (callbacks.onJoinOk) callbacks.onJoinOk(data);
         }
         else if (data.t === "game_start") {
+          aiDemoAnnounced = false;
           onlineGameState.status = 'RUNNING';
           onlineGameState.food = data.food;
           onlineGameState.snakes = {};
@@ -205,6 +208,17 @@ export function useOnlineGame() {
 
                 if (onlineGameState.players[pid]) {
                   onlineGameState.players[pid].alive = snake.alive;
+                }
+
+                const isAI2Revival = move.revived && moveName === 'AI2' && isBotPlayerId(pid);
+                if (isAI2Revival && !aiDemoAnnounced) {
+                  const aliveHumans = Object.entries(onlineGameState.players).some(([playerId, player]) => {
+                    return !isBotPlayerId(playerId) && player?.alive;
+                  });
+                  if (!aliveHumans) {
+                    aiDemoAnnounced = true;
+                    if (callbacks.onAIDemoStart) callbacks.onAIDemoStart();
+                  }
                 }
               }
             });
