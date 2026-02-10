@@ -86,8 +86,9 @@ export function useOnlineGame() {
           }
 
           if (data.snapshot) {
-            if (data.snapshot.food) onlineGameState.food = data.snapshot.food;
-            Object.entries(data.snapshot.snakes).forEach(([playerId, snakeData]) => {
+            if (Array.isArray(data.snapshot.food)) onlineGameState.food = data.snapshot.food;
+            const snapshotSnakes = data.snapshot.snakes || {};
+            Object.entries(snapshotSnakes).forEach(([playerId, snakeData]) => {
               const isMe = playerId === onlineGameState.myId;
               const snakeName = snakeData.name || onlineGameState.players[playerId]?.name || playerId;
               onlineGameState.snakes[playerId] = {
@@ -108,6 +109,9 @@ export function useOnlineGame() {
             });
           }
 
+          // Joining an already-running room may not emit game_start for this client.
+          // Ensure UI switches to active online rendering immediately.
+          if (data.status === "RUNNING" && callbacks.onGameStart) callbacks.onGameStart();
           if (callbacks.onJoinOk) callbacks.onJoinOk();
         }
         else if (data.t === "game_start") {
@@ -142,6 +146,7 @@ export function useOnlineGame() {
               const pid = move.id;
               const isMe = pid === onlineGameState.myId;
               const moveName = move.name || onlineGameState.players[pid]?.name || onlineGameState.snakes[pid]?.name || pid;
+              const snakeMissing = !onlineGameState.snakes[pid];
               const initializedFromBody = Boolean(move.revived && move.body);
 
               if (!onlineGameState.players[pid]) {
@@ -169,9 +174,10 @@ export function useOnlineGame() {
                 return;
               }
 
-              if (move.revived || !onlineGameState.snakes[pid]) {
+              if (move.revived || snakeMissing) {
+                const fallbackBody = move.head_add ? [move.head_add] : [];
                 onlineGameState.snakes[pid] = {
-                  body: move.body ? [...move.body] : (move.head_add ? [move.head_add] : []),
+                  body: move.body ? [...move.body] : fallbackBody,
                   color: getPlayerColor(pid, isMe, moveName),
                   alive: true,
                   name: moveName,
@@ -183,15 +189,22 @@ export function useOnlineGame() {
 
               const snake = onlineGameState.snakes[pid];
               if (snake) {
-                if (!initializedFromBody) {
+                const initializedWithHead = snakeMissing && !move.body && Boolean(move.head_add);
+                if (!initializedFromBody && !initializedWithHead) {
                   if (move.head_add) snake.body.unshift(move.head_add);
                   if (move.tail_remove && snake.body.length > 0) snake.body.pop();
                 }
+                snake.alive = move.alive !== undefined ? move.alive : true;
+                snake.name = moveName;
 
                 if (move.score !== undefined) {
                   snake.score = move.score;
                   if (onlineGameState.players[pid]) onlineGameState.players[pid].score = move.score;
                   if (isMe) onlineScore.value = move.score;
+                }
+
+                if (onlineGameState.players[pid]) {
+                  onlineGameState.players[pid].alive = snake.alive;
                 }
               }
             });
