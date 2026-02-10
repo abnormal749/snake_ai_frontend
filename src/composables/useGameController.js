@@ -14,6 +14,7 @@ export function useGameController(localGame, onlineGame, props) {
   const showModeMenu = ref(false);
   const toastMessage = ref(null);
   const toastType = ref('danger');
+  const suppressNextClose = ref(false);
   let countdownInterval = null;
   let toastTimeout = null;
 
@@ -27,6 +28,7 @@ export function useGameController(localGame, onlineGame, props) {
   };
 
   const handleConnect = () => {
+    suppressNextClose.value = false;
     localState.status = 'IDLE';
     gameMode.value = 'ONLINE';
     
@@ -86,6 +88,10 @@ export function useGameController(localGame, onlineGame, props) {
         showModeMenu.value = true;
       },
       onClose: () => {
+        if (suppressNextClose.value) {
+          suppressNextClose.value = false;
+          return;
+        }
         if (gameMode.value === 'ONLINE' || gameMode.value === 'CONNECTING') {
           gameMode.value = 'FINISHED';
           showModeMenu.value = true;
@@ -125,6 +131,7 @@ export function useGameController(localGame, onlineGame, props) {
   };
 
   const chooseContinueOnline = (onlineGameState, onlineScore) => {
+    suppressNextClose.value = true;
     disconnectOnline();
     showModeMenu.value = false;
     for (const key in onlineGameState.snakes) delete onlineGameState.snakes[key];
