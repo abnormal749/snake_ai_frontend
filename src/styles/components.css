@@ -2,7 +2,7 @@
   .font-press-start {
     font-family: var(--font-press-start);
   }
-  
+
   .font-vt323 {
     font-family: var(--font-vt323);
   }
@@ -14,24 +14,22 @@
   /* --- Complex Textures (Utilities) --- */
   .bg-sky-dither {
     background-color: var(--color-sky-base);
-    background-image: 
-        radial-gradient(var(--color-sky-light) 25%, transparent 25%),
-        radial-gradient(var(--color-sky-light) 25%, transparent 25%);
+    background-image:
+      radial-gradient(var(--color-sky-light) 25%, transparent 25%),
+      radial-gradient(var(--color-sky-light) 25%, transparent 25%);
     background-position: 0 0, 4px 4px;
     background-size: 8px 8px;
   }
 
   .bg-wood-texture {
     background-color: var(--color-wood-bg);
-    background-image: repeating-linear-gradient(
-        0deg,
+    background-image: repeating-linear-gradient(0deg,
         transparent,
         transparent 4px,
         var(--color-wood-line) 4px,
-        var(--color-wood-line) 8px
-    );
+        var(--color-wood-line) 8px);
   }
-  
+
   .bg-soil-pattern {
     background-color: var(--color-soil-bg);
     background-image: radial-gradient(var(--color-soil-dot) 2px, transparent 0);
@@ -40,10 +38,15 @@
 
   /* --- Animations --- */
   @keyframes float {
-    from { transform: translateX(100vw); }
-    to { transform: translateX(-200px); }
+    from {
+      transform: translateX(100vw);
+    }
+
+    to {
+      transform: translateX(-200px);
+    }
   }
-  
+
   .animate-float {
     animation: float linear infinite;
   }
@@ -57,17 +60,15 @@
     @apply shadow-2xl;
     font-family: var(--font-vt323);
     background-color: var(--color-wood-bg);
-    background-image: repeating-linear-gradient(
-        0deg,
+    background-image: repeating-linear-gradient(0deg,
         transparent,
         transparent 4px,
         var(--color-wood-line) 4px,
-        var(--color-wood-line) 8px
-    );
+        var(--color-wood-line) 8px);
     border: 4px solid var(--color-wood-border);
-    box-shadow: 
-        inset 4px 4px 0px var(--color-wood-highlight),
-        inset -4px -4px 0px var(--color-wood-shadow);
+    box-shadow:
+      inset 4px 4px 0px var(--color-wood-highlight),
+      inset -4px -4px 0px var(--color-wood-shadow);
   }
 
   /* Input/Select */
@@ -78,13 +79,15 @@
     color: var(--color-input-text);
     border-color: var(--color-input-border);
   }
+
   .c-input-game:focus {
     border-color: var(--color-input-focus);
   }
+
   .c-input-game::placeholder {
     color: var(--color-input-placeholder);
   }
-  
+
   .c-select-game {
     @apply w-full p-2 border-2 text-lg outline-none;
     font-family: var(--font-vt323);
@@ -100,10 +103,10 @@
     background-color: var(--color-btn-green-bg);
     color: var(--color-btn-green-text);
     border: 4px solid var(--color-game-bg);
-    box-shadow: 
-        inset 4px 4px 0px var(--color-btn-green-light),
-        inset -4px -4px 0px var(--color-btn-green-dark),
-        4px 4px 0px rgba(0,0,0,0.5);
+    box-shadow:
+      inset 4px 4px 0px var(--color-btn-green-light),
+      inset -4px -4px 0px var(--color-btn-green-dark),
+      4px 4px 0px rgba(0, 0, 0, 0.5);
   }
 
   /* Scoreboard Item */
@@ -112,17 +115,15 @@
     font-family: var(--font-vt323);
     color: var(--color-text-light);
     background-color: var(--color-wood-bg);
-    background-image: repeating-linear-gradient(
-        0deg,
+    background-image: repeating-linear-gradient(0deg,
         transparent,
         transparent 4px,
         var(--color-wood-line) 4px,
-        var(--color-wood-line) 8px
-    );
+        var(--color-wood-line) 8px);
     border: 4px solid var(--color-wood-border);
-    box-shadow: 
-        inset 4px 4px 0px var(--color-wood-highlight),
-        inset -4px -4px 0px var(--color-wood-shadow);
+    box-shadow:
+      inset 4px 4px 0px var(--color-wood-highlight),
+      inset -4px -4px 0px var(--color-wood-shadow);
   }
 
   /* Game Area Container */
@@ -133,9 +134,10 @@
     /* Responsive Scaling */
     width: 100%;
     max-width: 900px;
-    aspect-ratio: 3/2; /* Matches 600/400 Canvas Ratio */
+    aspect-ratio: 1/1;
+    /* Matches 1000/1000 Canvas Ratio */
   }
-  
+
   .c-game-area canvas {
     width: 100% !important;
     height: 100% !important;
@@ -149,7 +151,7 @@
     border-color: var(--color-wood-border);
     color: var(--color-text-light);
   }
-  
+
   /* Text Styles */
   .c-text-title {
     font-family: var(--font-press-start);
@@ -160,7 +162,7 @@
     filter: drop-shadow(4px 4px 0px #BF360C);
     text-shadow: 2px 2px 0 #000;
   }
-  
+
   /* Hints */
   .c-hint-text {
     @apply mt-4 text-xl px-4 py-1;
@@ -175,12 +177,12 @@
     background-color: var(--color-tree-leaf);
     border-color: var(--color-game-bg);
   }
-  
+
   .c-tree-berry {
     @apply absolute w-2 h-2;
     background-color: var(--color-tree-berry);
   }
-  
+
   .c-tree-trunk {
     @apply w-6 h-12 border-x-4 border-b-4 mx-auto;
     background-color: var(--color-tree-trunk);
@@ -191,12 +193,15 @@
   .c-heart {
     @apply w-6 h-6 border-2 border-black inline-block;
   }
+
   .c-heart-full {
     background-color: var(--color-health-heart);
   }
+
   .c-heart-half {
     background: linear-gradient(90deg, var(--color-health-heart) 50%, var(--color-health-empty) 50%);
   }
+
   .c-heart-empty {
     background-color: var(--color-health-empty);
   }
