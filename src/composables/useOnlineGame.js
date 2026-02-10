@@ -69,6 +69,7 @@ export function useOnlineGame() {
         const data = JSON.parse(event.data);
 
         if (data.t === "join_ok") {
+          aiDemoAnnounced = false;
           onlineGameState.myId = data.your_id;
           onlineGameState.roomId = data.room_id;
           onlineGameState.status = data.status;
@@ -76,20 +77,24 @@ export function useOnlineGame() {
           if (data.map) onlineGameState.mapSize = data.map;
 
           onlineGameState.players = {};
+          onlineGameState.snakes = {};
+          onlineGameState.food = [];
+          const assumeAliveByDefault = data.status !== "RUNNING";
           if (data.players) {
             data.players.forEach(p => {
               onlineGameState.players[p.id] = {
                 name: p.name,
                 score: 0,
-                alive: p.alive !== undefined ? p.alive : true,
+                alive: p.alive !== undefined ? p.alive : assumeAliveByDefault,
                 connected: p.connected !== undefined ? p.connected : true
               };
             });
           }
 
+          let snapshotSnakes = {};
           if (data.snapshot) {
             if (Array.isArray(data.snapshot.food)) onlineGameState.food = data.snapshot.food;
-            const snapshotSnakes = data.snapshot.snakes || {};
+            snapshotSnakes = data.snapshot.snakes || {};
             Object.entries(snapshotSnakes).forEach(([playerId, snakeData]) => {
               const isMe = playerId === onlineGameState.myId;
               const snakeName = snakeData.name || onlineGameState.players[playerId]?.name || playerId;
@@ -111,6 +116,16 @@ export function useOnlineGame() {
             });
           }
 
+          // For mid-game joins, players not present in snapshot snakes should be treated as dead.
+          if (data.status === "RUNNING") {
+            const aliveIds = new Set(Object.keys(snapshotSnakes));
+            Object.keys(onlineGameState.players).forEach((pid) => {
+              if (!aliveIds.has(pid)) {
+                onlineGameState.players[pid].alive = false;
+              }
+            });
+          }
+
           // Joining an already-running room may not emit game_start for this client.
           // Ensure UI switches to active online rendering immediately.
           if (data.status === "RUNNING" && callbacks.onGameStart) callbacks.onGameStart();
@@ -120,6 +135,7 @@ export function useOnlineGame() {
           aiDemoAnnounced = false;
           onlineGameState.status = 'RUNNING';
           onlineGameState.food = data.food;
+          onlineGameState.players = {};
           onlineGameState.snakes = {};
           data.players.forEach(p => {
             const isMe = p.id === onlineGameState.myId;
@@ -145,6 +161,9 @@ export function useOnlineGame() {
           if (data.food) onlineGameState.food = data.food;
 
           if (data.moves) {
+            const deathEvents = [];
+            let sawAI2Revived = false;
+
             data.moves.forEach(move => {
               const pid = move.id;
               const isMe = pid === onlineGameState.myId;
@@ -170,10 +189,11 @@ export function useOnlineGame() {
                 }
                 if (onlineGameState.players[pid]) onlineGameState.players[pid].alive = false;
 
-                if (callbacks.onPlayerDied) {
-                  const name = onlineGameState.players[pid]?.name || 'Unknown';
-                  callbacks.onPlayerDied(name, move.reason);
-                }
+                deathEvents.push({
+                  id: pid,
+                  name: onlineGameState.players[pid]?.name || moveName || 'Unknown',
+                  reason: move.reason
+                });
                 return;
               }
 
@@ -210,18 +230,32 @@ export function useOnlineGame() {
                   onlineGameState.players[pid].alive = snake.alive;
                 }
 
-                const isAI2Revival = move.revived && moveName === 'AI2' && isBotPlayerId(pid);
-                if (isAI2Revival && !aiDemoAnnounced) {
-                  const aliveHumans = Object.entries(onlineGameState.players).some(([playerId, player]) => {
-                    return !isBotPlayerId(playerId) && player?.alive;
-                  });
-                  if (!aliveHumans) {
-                    aiDemoAnnounced = true;
-                    if (callbacks.onAIDemoStart) callbacks.onAIDemoStart();
-                  }
+                if (move.revived && moveName === 'AI2' && isBotPlayerId(pid)) {
+                  sawAI2Revived = true;
                 }
               }
             });
+
+            const aliveHumans = Object.entries(onlineGameState.players).some(([playerId, player]) => {
+              return !isBotPlayerId(playerId) && player?.alive;
+            });
+            const aliveBots = Object.entries(onlineGameState.players).filter(([playerId, player]) => {
+              return isBotPlayerId(playerId) && player?.alive;
+            }).length;
+
+            const aiDemoStartedNow = sawAI2Revived && !aiDemoAnnounced && !aliveHumans && aliveBots >= 2;
+            if (aiDemoStartedNow) {
+              aiDemoAnnounced = true;
+              if (callbacks.onAIDemoStart) callbacks.onAIDemoStart();
+            }
+
+            if (callbacks.onPlayerDied) {
+              deathEvents.forEach((ev) => {
+                const isHuman = !isBotPlayerId(ev.id);
+                if (aiDemoStartedNow && isHuman) return;
+                callbacks.onPlayerDied(ev.name, ev.reason);
+              });
+            }
           }
         }
         else if (data.t === "game_over") {
