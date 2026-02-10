@@ -77,7 +77,7 @@ onUnmounted(() => {
         ROOM: {{ userData.roomId }}
         <span v-if="gameMode === 'LOCAL'" class="ml-2 text-green-400">LOCAL</span>
         <span v-if="gameMode === 'ONLINE'" class="ml-2 text-blue-400">
-          ONLINE ({{ Object.values(onlineGameState.players).filter(p => p.connected).length }}人)
+          ONLINE ({{ Object.keys(onlineGameState.snakes).length }}人)
         </span>
         <span v-if="gameMode === 'CONNECTING'" class="ml-2 text-yellow-400">⏰ {{ countdown }}s</span>
       </div>

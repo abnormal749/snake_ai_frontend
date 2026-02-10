@@ -218,7 +218,7 @@ export function useGameRender() {
       ctx.fillStyle = 'rgba(100, 150, 255, 0.7)';
       ctx.font = '20px "VT323"';
       ctx.textAlign = 'center';
-      const playerCount = Object.keys(onlineGameState.players).length;
+      const playerCount = Object.keys(onlineGameState.snakes).length;
       ctx.fillText(`ONLINE - ${playerCount} Players`, canvas.width / 2, 30);
     }
   };

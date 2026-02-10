@@ -208,6 +208,10 @@ export function useOnlineGame() {
     }
     onlineGameState.snakes = {};
     onlineGameState.food = [];
+    onlineGameState.players = {};
+    onlineGameState.myId = null;
+    onlineGameState.roomId = null;
+    onlineGameState.status = 'IDLE';
   };
 
   const sendInput = (dir) => {
