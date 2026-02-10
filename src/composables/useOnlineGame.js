@@ -159,7 +159,8 @@ export function useOnlineGame() {
           if (callbacks.onGameStart) callbacks.onGameStart();
         }
         else if (data.t === "d") {
-          if (callbacks.getGameMode() !== 'ONLINE') return;
+          const mode = callbacks.getGameMode();
+          if (mode !== 'ONLINE' && mode !== 'CONNECTING') return;
           if (data.food) onlineGameState.food = data.food;
 
           if (data.moves) {

@@ -40,7 +40,7 @@ export function useGameController(localGame, onlineGame, props) {
     suppressNextClose.value = false;
     clearToast();
     localState.status = 'IDLE';
-    gameMode.value = 'ONLINE';
+    gameMode.value = 'CONNECTING';
     
     connectOnline(props.userData, {
       getGameMode: () => gameMode.value,
