@@ -191,6 +191,9 @@ export function useOnlineGame() {
 
   const disconnect = () => {
     if (socket.value) {
+      if (socket.value.readyState === WebSocket.OPEN) {
+        socket.value.send(JSON.stringify({ t: "exit" }));
+      }
       socket.value.close();
       socket.value = null;
     }
