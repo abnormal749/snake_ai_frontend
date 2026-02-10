@@ -16,7 +16,7 @@ export function useOnlineGame() {
 
   const onlineScore = reactive({ value: 0 });
 
-  const getPlayerColor = (playerId, isMe) => {
+  const getPlayerColor = (playerId, isMe, playerName = '') => {
     if (isMe) {
       return {
         body: '#4ade80',
@@ -25,16 +25,19 @@ export function useOnlineGame() {
       };
     }
 
+    const seed = `${playerId}:${playerName || ''}`;
     let hash = 0;
-    for (let i = 0; i < playerId.length; i++) {
-      hash = playerId.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < seed.length; i++) {
+      hash = seed.charCodeAt(i) + ((hash << 5) - hash);
     }
 
     const hue = Math.abs(hash % 360);
+    const sat = 60 + (Math.abs((hash >> 3) % 15));
+    const light = 52 + (Math.abs((hash >> 7) % 10));
     return {
-      body: `hsl(${hue}, 70%, 60%)`,
-      head: `hsl(${hue}, 70%, 75%)`,
-      border: `hsl(${hue}, 70%, 30%)`
+      body: `hsl(${hue}, ${sat}%, ${light}%)`,
+      head: `hsl(${hue}, ${sat}%, ${Math.min(85, light + 14)}%)`,
+      border: `hsl(${hue}, ${sat}%, ${Math.max(25, light - 26)}%)`
     };
   };
 
@@ -86,12 +89,13 @@ export function useOnlineGame() {
             if (data.snapshot.food) onlineGameState.food = data.snapshot.food;
             Object.entries(data.snapshot.snakes).forEach(([playerId, snakeData]) => {
               const isMe = playerId === onlineGameState.myId;
+              const snakeName = snakeData.name || onlineGameState.players[playerId]?.name || playerId;
               onlineGameState.snakes[playerId] = {
                 body: snakeData.body,
-                color: getPlayerColor(playerId, isMe),
+                color: getPlayerColor(playerId, isMe, snakeName),
                 alive: snakeData.alive,
                 getName: () => snakeData.name || 'Unknown', // Helper to get name
-                name: snakeData.name,
+                name: snakeName,
                 score: snakeData.score
               };
               if (onlineGameState.players[playerId]) {
@@ -114,7 +118,7 @@ export function useOnlineGame() {
             const isMe = p.id === onlineGameState.myId;
             onlineGameState.snakes[p.id] = {
               body: p.body,
-              color: getPlayerColor(p.id, isMe),
+              color: getPlayerColor(p.id, isMe, p.name),
               alive: true,
               name: p.name,
               score: 0
@@ -137,6 +141,19 @@ export function useOnlineGame() {
             data.moves.forEach(move => {
               const pid = move.id;
               const isMe = pid === onlineGameState.myId;
+              const moveName = move.name || onlineGameState.players[pid]?.name || onlineGameState.snakes[pid]?.name || pid;
+              const initializedFromBody = Boolean(move.revived && move.body);
+
+              if (!onlineGameState.players[pid]) {
+                onlineGameState.players[pid] = {
+                  name: moveName,
+                  score: 0,
+                  alive: true,
+                  connected: true
+                };
+              } else if (move.name) {
+                onlineGameState.players[pid].name = move.name;
+              }
 
               if (move.dead) {
                 if (onlineGameState.snakes[pid]) {
@@ -154,18 +171,22 @@ export function useOnlineGame() {
 
               if (move.revived || !onlineGameState.snakes[pid]) {
                 onlineGameState.snakes[pid] = {
-                  body: move.head_add ? [move.head_add] : [],
-                  color: getPlayerColor(pid, isMe),
+                  body: move.body ? [...move.body] : (move.head_add ? [move.head_add] : []),
+                  color: getPlayerColor(pid, isMe, moveName),
                   alive: true,
-                  name: onlineGameState.players[pid]?.name || 'AI',
+                  name: moveName,
                   score: move.score || 0
                 };
+              } else if (move.name) {
+                onlineGameState.snakes[pid].name = move.name;
               }
 
               const snake = onlineGameState.snakes[pid];
               if (snake) {
-                if (move.head_add) snake.body.unshift(move.head_add);
-                if (move.tail_remove && snake.body.length > 0) snake.body.pop();
+                if (!initializedFromBody) {
+                  if (move.head_add) snake.body.unshift(move.head_add);
+                  if (move.tail_remove && snake.body.length > 0) snake.body.pop();
+                }
 
                 if (move.score !== undefined) {
                   snake.score = move.score;
