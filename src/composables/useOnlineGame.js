@@ -112,7 +112,7 @@ export function useOnlineGame() {
           // Joining an already-running room may not emit game_start for this client.
           // Ensure UI switches to active online rendering immediately.
           if (data.status === "RUNNING" && callbacks.onGameStart) callbacks.onGameStart();
-          if (callbacks.onJoinOk) callbacks.onJoinOk();
+          if (callbacks.onJoinOk) callbacks.onJoinOk(data);
         }
         else if (data.t === "game_start") {
           onlineGameState.status = 'RUNNING';

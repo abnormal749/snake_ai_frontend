@@ -25,9 +25,12 @@ export function useGameController(localGame, onlineGame, props) {
     
     connectOnline(props.userData, {
       getGameMode: () => gameMode.value,
-      onJoinOk: () => {
+      onJoinOk: (joinData) => {
         gameMode.value = 'ONLINE';
         localState.status = 'IDLE';
+        if (joinData?.status === 'WAITING') {
+          showToast('已加入房間，約等待 5 秒後開始');
+        }
       },
       onGameStart: () => {
         showModeMenu.value = false;
