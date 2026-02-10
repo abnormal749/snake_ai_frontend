@@ -61,7 +61,7 @@ export function useGameController(localGame, onlineGame, props) {
         if (reason === "wall") reasonText = "hit a wall";
         else if (reason === "body") reasonText = "ran into a snake";
         else if (reason === "head-on") reasonText = "crashed head-on";
-        else if (reason === "collision") reasonText = "was eliminated";
+        else if (reason === "collision") reasonText = "was out";
 
         showToast(`💀 ${name} ${reasonText}`);
       },
