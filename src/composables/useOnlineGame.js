@@ -4,6 +4,7 @@ export function useOnlineGame() {
   const socket = ref(null);
   const SERVER_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
   const isBotPlayerId = (pid) => typeof pid === 'string' && pid.startsWith('bot_');
+  const DEFAULT_MAP_SIZE = { w: 50, h: 50 };
 
   const onlineGameState = reactive({
     myId: null,
@@ -12,7 +13,7 @@ export function useOnlineGame() {
     players: {},
     snakes: {},
     food: [],
-    mapSize: { w: 50, h: 50 }
+    mapSize: { ...DEFAULT_MAP_SIZE }
   });
 
   const onlineScore = reactive({ value: 0 });
@@ -70,6 +71,7 @@ export function useOnlineGame() {
 
         if (data.t === "join_ok") {
           aiDemoAnnounced = false;
+          onlineScore.value = 0;
           onlineGameState.myId = data.your_id;
           onlineGameState.roomId = data.room_id;
           onlineGameState.status = data.status;
@@ -294,6 +296,8 @@ export function useOnlineGame() {
     onlineGameState.myId = null;
     onlineGameState.roomId = null;
     onlineGameState.status = 'IDLE';
+    onlineGameState.mapSize = { ...DEFAULT_MAP_SIZE };
+    onlineScore.value = 0;
   };
 
   const sendInput = (dir) => {

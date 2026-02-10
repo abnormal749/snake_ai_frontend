@@ -112,7 +112,7 @@ onUnmounted(() => {
         <div class="text-xl mb-8 font-vt323">Choose your next mode:</div>
         
         <div class="flex flex-col gap-4">
-          <button @click="chooseContinueOnline(onlineGameState, onlineScore)" class="c-btn-game">
+          <button @click="chooseContinueOnline" class="c-btn-game">
             CONTINUE ONLINE
           </button>
           <button @click="choosePlayLocal" class="c-btn-game">

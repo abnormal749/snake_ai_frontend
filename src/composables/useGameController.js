@@ -18,6 +18,15 @@ export function useGameController(localGame, onlineGame, props) {
   let countdownInterval = null;
   let toastTimeout = null;
 
+  const clearToast = () => {
+    toastMessage.value = null;
+    toastType.value = 'danger';
+    if (toastTimeout) {
+      clearTimeout(toastTimeout);
+      toastTimeout = null;
+    }
+  };
+
   const showToast = (msg, type = 'danger') => {
     toastMessage.value = msg;
     toastType.value = type;
@@ -29,6 +38,7 @@ export function useGameController(localGame, onlineGame, props) {
 
   const handleConnect = () => {
     suppressNextClose.value = false;
+    clearToast();
     localState.status = 'IDLE';
     gameMode.value = 'ONLINE';
     
@@ -47,11 +57,12 @@ export function useGameController(localGame, onlineGame, props) {
         showModeMenu.value = false;
       },
       onPlayerDied: (name, reason) => {
-        let reasonText = "died";
+        let reasonText = "is out";
         if (reason === "wall") reasonText = "hit a wall";
         else if (reason === "body") reasonText = "ran into a snake";
         else if (reason === "head-on") reasonText = "crashed head-on";
-        
+        else if (reason === "collision") reasonText = "was eliminated";
+
         showToast(`💀 ${name} ${reasonText}`);
       },
       onAIDemoStart: () => {
@@ -104,6 +115,7 @@ export function useGameController(localGame, onlineGame, props) {
   };
 
   const startCountdown = () => {
+    clearToast();
     countdown.value = 20;
     gameMode.value = 'CONNECTING';
     localState.status = 'PLAYING';
@@ -128,21 +140,17 @@ export function useGameController(localGame, onlineGame, props) {
   };
 
   const handleDisconnect = () => {
+    clearToast();
     disconnectOnline();
     gameMode.value = 'LOCAL';
     localState.status = 'PLAYING';
   };
 
-  const chooseContinueOnline = (onlineGameState, onlineScore) => {
+  const chooseContinueOnline = () => {
     suppressNextClose.value = true;
+    clearToast();
     disconnectOnline();
     showModeMenu.value = false;
-    for (const key in onlineGameState.snakes) delete onlineGameState.snakes[key];
-    onlineGameState.food.length = 0;
-    for (const key in onlineGameState.players) delete onlineGameState.players[key];
-    onlineGameState.myId = null;
-    onlineScore.value = 0;
-    
     startCountdown();
   };
 
@@ -178,6 +186,7 @@ export function useGameController(localGame, onlineGame, props) {
   };
 
   const cleanup = () => {
+    clearToast();
     disconnectOnline();
     if (countdownInterval) clearInterval(countdownInterval);
   };
