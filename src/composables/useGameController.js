@@ -37,6 +37,8 @@ export function useGameController(localGame, onlineGame, props) {
         localState.status = 'IDLE';
         if (joinData?.status === 'WAITING') {
           showToast('已加入房間，約等待 5 秒後開始', 'warning');
+        } else if (joinData?.status === 'RUNNING') {
+          showToast('遊戲進行中，已進入目前對局', 'warning');
         }
       },
       onGameStart: () => {
@@ -77,7 +79,7 @@ export function useGameController(localGame, onlineGame, props) {
         }, 5000);
       },
       onError: (code) => {
-        if (code === 'ROOM_FULL') showToast('房間已滿');
+        if (code === 'ROOM_FULL') showToast('房間已滿，請改選其他房間', 'warning');
         else if (code === 'ROOM_NOT_FOUND') showToast('房間不存在');
         else showToast(`連線錯誤 (${code || 'UNKNOWN'})`);
         gameMode.value = 'FINISHED';
