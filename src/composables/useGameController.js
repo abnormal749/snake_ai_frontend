@@ -46,6 +46,13 @@ export function useGameController(localGame, onlineGame, props) {
             showModeMenu.value = true;
         }, 5000);
       },
+      onError: (code) => {
+        if (code === 'ROOM_FULL') showToast('房間已滿');
+        else if (code === 'ROOM_NOT_FOUND') showToast('房間不存在');
+        else showToast(`連線錯誤 (${code || 'UNKNOWN'})`);
+        gameMode.value = 'FINISHED';
+        showModeMenu.value = true;
+      },
       onClose: () => {
         if (gameMode.value === 'ONLINE' || gameMode.value === 'CONNECTING') {
           gameMode.value = 'FINISHED';

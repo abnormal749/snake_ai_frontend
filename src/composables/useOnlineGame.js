@@ -171,6 +171,11 @@ export function useOnlineGame() {
           onlineGameState.status = 'FINISHED';
           if (callbacks.onGameOver) callbacks.onGameOver();
         }
+        else if (data.t === "err") {
+          onlineGameState.status = 'IDLE';
+          if (callbacks.onError) callbacks.onError(data.code);
+          disconnect();
+        }
       } catch (e) { console.error("❌ Error parsing message:", e); }
     };
 
