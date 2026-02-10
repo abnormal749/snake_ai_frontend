@@ -29,7 +29,7 @@ const { localState, localScore, resetLocalGame, updateLocalGame, spawnItem } = l
 const { onlineGameState, onlineScore } = onlineGame;
 const { resolvePalette, render } = renderGame;
 const { 
-  gameMode, countdown, showModeMenu, toastMessage,
+  gameMode, countdown, showModeMenu, toastMessage, toastType,
   startCountdown, chooseContinueOnline, choosePlayLocal, handleKeydown, cleanup 
 } = controller;
 
@@ -94,8 +94,15 @@ onUnmounted(() => {
         <button @click="resetLocalGame" class="c-btn-game">RESTART</button>
       </div>
 
-      <div v-if="toastMessage" 
-           class="absolute top-10 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-2 rounded-lg font-vt323 text-xl shadow-lg z-40 transition-opacity duration-500">
+      <div
+        v-if="toastMessage"
+        :class="[
+          'absolute top-10 left-1/2 -translate-x-1/2 px-6 py-2 rounded-lg font-vt323 text-xl shadow-lg z-40 transition-opacity duration-500 whitespace-pre-line text-center',
+          toastType === 'warning'
+            ? 'bg-yellow-300 text-amber-900 border-2 border-yellow-500'
+            : 'bg-red-600 text-white'
+        ]"
+      >
         {{ toastMessage }}
       </div>
 

@@ -212,7 +212,7 @@ export function useOnlineGame() {
         }
         else if (data.t === "game_over") {
           onlineGameState.status = 'FINISHED';
-          if (callbacks.onGameOver) callbacks.onGameOver();
+          if (callbacks.onGameOver) callbacks.onGameOver(data);
         }
         else if (data.t === "err") {
           onlineGameState.status = 'IDLE';

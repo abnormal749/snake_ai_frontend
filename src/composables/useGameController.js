@@ -2,17 +2,24 @@ import { ref } from 'vue';
 
 export function useGameController(localGame, onlineGame, props) {
   const { localState, resetLocalGame } = localGame;
-  const { connect: connectOnline, disconnect: disconnectOnline, sendInput } = onlineGame;
+  const {
+    connect: connectOnline,
+    disconnect: disconnectOnline,
+    sendInput,
+    onlineGameState
+  } = onlineGame;
 
   const gameMode = ref('LOCAL');
   const countdown = ref(20);
   const showModeMenu = ref(false);
   const toastMessage = ref(null);
+  const toastType = ref('danger');
   let countdownInterval = null;
   let toastTimeout = null;
 
-  const showToast = (msg) => {
+  const showToast = (msg, type = 'danger') => {
     toastMessage.value = msg;
+    toastType.value = type;
     if (toastTimeout) clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => {
       toastMessage.value = null;
@@ -29,7 +36,7 @@ export function useGameController(localGame, onlineGame, props) {
         gameMode.value = 'ONLINE';
         localState.status = 'IDLE';
         if (joinData?.status === 'WAITING') {
-          showToast('已加入房間，約等待 5 秒後開始');
+          showToast('已加入房間，約等待 5 秒後開始', 'warning');
         }
       },
       onGameStart: () => {
@@ -43,7 +50,27 @@ export function useGameController(localGame, onlineGame, props) {
         
         showToast(`💀 ${name} ${reasonText}`);
       },
-      onGameOver: () => {
+      onGameOver: (gameOverData) => {
+        const ranks = Array.isArray(gameOverData?.ranks) ? [...gameOverData.ranks] : [];
+        ranks.sort((a, b) => {
+          const scoreDiff = (b.score ?? 0) - (a.score ?? 0);
+          if (scoreDiff !== 0) return scoreDiff;
+          return (a.rank ?? 999) - (b.rank ?? 999);
+        });
+
+        if (ranks.length > 0) {
+          const rankLines = ranks.map((entry, idx) => {
+            const pid = entry.id;
+            const name =
+              onlineGameState.players[pid]?.name ||
+              onlineGameState.snakes[pid]?.name ||
+              pid ||
+              `P${idx + 1}`;
+            return `${idx + 1}. ${name} - ${entry.score ?? 0}`;
+          });
+          showToast(`本局排名\n${rankLines.join('\n')}`, 'warning');
+        }
+
         gameMode.value = 'FINISHED';
         setTimeout(() => {
             showModeMenu.value = true;
@@ -148,6 +175,7 @@ export function useGameController(localGame, onlineGame, props) {
     countdown,
     showModeMenu,
     toastMessage,
+    toastType,
     startCountdown,
     chooseContinueOnline,
     choosePlayLocal,
