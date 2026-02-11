@@ -84,3 +84,7 @@ npm run dev
 - **src/**: 前端 Vue 程式碼
 - **server.js**: Express 伺服器（靜態檔案 + WebSocket 代理）
 - **vite.config.js**: Vite 設定
+
+## 其他專案程式碼
+- AI訓練部分：https://github.com/happyjimmy8964/SnakeAI_game_Interface
+- Pygame與伺服器：https://github.com/abnormal749/ccclub2025-snake
